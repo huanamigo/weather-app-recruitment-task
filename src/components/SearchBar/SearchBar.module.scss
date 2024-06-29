@@ -1,0 +1,29 @@
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  margin: 1rem;
+  margin-top: 0;
+
+  border-bottom: 2px solid white;
+
+  input {
+    background: none;
+    border: none;
+    color: white;
+
+    &:focus-visible {
+      border: none;
+      outline: none;
+    }
+  }
+
+  .fetchBtnWrapper {
+    width: 30px;
+    display: flex;
+    justify-content: center;
+
+    cursor: pointer;
+  }
+}
