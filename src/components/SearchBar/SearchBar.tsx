@@ -4,16 +4,14 @@ import styles from './SearchBar.module.scss';
 interface SearchProps {
   fetchData: (fetchUrl: string) => Promise<void>;
   URL: string;
-  searchError: string;
 }
 
-const SearchBar = ({ fetchData, URL, searchError }: SearchProps) => {
+const SearchBar = ({ fetchData, URL }: SearchProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const handleSearch = () => {
     navigate(`/weather?search=${searchParams.get('search')}`);
-    console.log(searchError);
     fetchData(URL);
   };
 
@@ -44,7 +42,7 @@ const SearchBar = ({ fetchData, URL, searchError }: SearchProps) => {
           type="text"
           placeholder="Search"
           onChange={(e) => setSearchParams({ search: e.target.value })}
-          defaultValue={searchParams.get('search') || ''}
+          value={searchParams.get('search') || ''}
         />
         <div className={styles.fetchBtnWrapper} onClick={() => handleSearch()}>
           {searchParams.get('search') ? (

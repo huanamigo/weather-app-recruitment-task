@@ -7,9 +7,10 @@ interface PropsType {
   fetchData: (fetchUrl: string) => Promise<void>;
   URL: string;
   data: WeatherType | undefined;
+  searchError: string;
 }
 
-const Weather = ({ fetchData, URL, data }: PropsType) => {
+const Weather = ({ fetchData, URL, data, searchError }: PropsType) => {
   const [searchParams] = useSearchParams();
   const [showData, setShowData] = useState(false);
 
@@ -20,14 +21,13 @@ const Weather = ({ fetchData, URL, data }: PropsType) => {
 
   useEffect(() => {
     const fetchDataAndShow = async () => {
-      if (!searchParams.get('search')) {
+      if (!searchParams.get('search') || searchError !== '') {
         setShowData(false);
       } else {
         try {
           await fetchData(URL);
           setShowData(true);
         } catch (error) {
-          console.error(error);
           setShowData(false);
         }
       }
@@ -35,7 +35,7 @@ const Weather = ({ fetchData, URL, data }: PropsType) => {
 
     fetchDataAndShow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showData]);
+  }, [showData, searchError]);
 
   return (
     <>
@@ -108,9 +108,8 @@ const Weather = ({ fetchData, URL, data }: PropsType) => {
                   <span>
                     {' '}
                     {day.day.daily_chance_of_rain > 0
-                      ? day.day.daily_chance_of_rain
+                      ? day.day.daily_chance_of_rain + '%'
                       : null}
-                    %
                   </span>
                 </div>
                 <div className={styles.minMaxTemp}>
@@ -148,7 +147,7 @@ const Weather = ({ fetchData, URL, data }: PropsType) => {
           </div>
         </div>
       ) : (
-        <p>no data</p>
+        <p style={{ textAlign: 'center' }}>{searchError}</p>
       )}
     </>
   );

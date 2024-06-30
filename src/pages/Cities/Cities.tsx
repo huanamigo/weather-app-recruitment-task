@@ -1,9 +1,11 @@
 import styles from './Cities.module.scss';
 import { useEffect, useState } from 'react';
 import { WeatherType } from '../../types';
+import { useNavigate } from 'react-router-dom';
 
 interface PropsType {
   storedCities: string[];
+  setStoredCities: (cities: string[]) => void;
 }
 
 interface CityWidgetType {
@@ -13,16 +15,26 @@ interface CityWidgetType {
   icon: string;
 }
 
-const Cities = ({ storedCities }: PropsType) => {
+const Cities = ({ storedCities, setStoredCities }: PropsType) => {
   const [savedData, setSavedData] = useState<CityWidgetType[]>([]);
+  const [showInput, setShowInput] = useState(false);
+  const [newCity, setNewCity] = useState('');
 
-  const fetchWidgetData = async (fetchUrl: string) => {
+  const navigate = useNavigate();
+
+  const fetchWidgetData = async (city: string) => {
+    const fetchUrl: string = `https://api.weatherapi.com/v1/forecast.json?key=${
+      import.meta.env.VITE_API_KEY
+    }&q=${city}&days=1&aqi=yes&alerts=no`;
     const res = await fetch(fetchUrl);
     if (!res.ok) {
-      console.log('first');
+      const updatedCities = storedCities.filter(
+        (storedCity) => storedCity !== city
+      );
+      setStoredCities(updatedCities);
+      localStorage.setItem('storedCities', JSON.stringify(updatedCities));
     } else {
       const jsonData: WeatherType = await res.json();
-      console.log(jsonData);
       setSavedData((prevData) => {
         const isCityAlreadySaved = prevData.some(
           (city) => city.name === jsonData.location.name
@@ -46,14 +58,33 @@ const Cities = ({ storedCities }: PropsType) => {
   };
 
   useEffect(() => {
-    storedCities.map((city) => {
-      const storedCityURL: string = `https://api.weatherapi.com/v1/forecast.json?key=${
-        import.meta.env.VITE_API_KEY
-      }&q=${city}&days=1&aqi=yes&alerts=no`;
-      fetchWidgetData(storedCityURL);
+    storedCities.forEach((city) => {
+      fetchWidgetData(city);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedCities]);
+
+  const handleAddCity = () => {
+    if (
+      newCity.trim() &&
+      !storedCities.includes(newCity.trim().toLowerCase())
+    ) {
+      const updatedCities = [...storedCities, newCity.trim().toLowerCase()];
+      setStoredCities(updatedCities);
+      localStorage.setItem('storedCities', JSON.stringify(updatedCities));
+      setNewCity('');
+      setShowInput(false);
+    }
+  };
+
+  const handleDeleteCity = (cityName: string) => {
+    const updatedCities = storedCities.filter(
+      (city) => city !== cityName.toLowerCase()
+    );
+    setStoredCities(updatedCities);
+    setSavedData(savedData.filter((city) => city.name !== cityName));
+    localStorage.setItem('storedCities', JSON.stringify(updatedCities));
+  };
 
   return (
     <div className={styles.container}>
@@ -61,16 +92,49 @@ const Cities = ({ storedCities }: PropsType) => {
         <div key={city.name} className={styles.widget}>
           <div>
             <p className={styles.cityTemp}>{city.temp}°</p>
+            <img src={city.icon} alt="Weather icon" />
             <div>
-              <img src={city.icon} alt="Weather icon" />
+              <button
+                className={styles.deleteButton}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCity(city.name);
+                }}
+              >
+                ⨉
+              </button>
             </div>
           </div>
           <div>
-            <p>{city.name}</p>
+            <p
+              onClick={() => {
+                navigate(`/weather?search=${city.name}`);
+              }}
+              className={styles.cityName}
+            >
+              {city.name}
+            </p>
             <p>{city.country}</p>
           </div>
         </div>
       ))}
+      <div className={styles.widget}>
+        {showInput ? (
+          <div className={styles.addInput}>
+            <input
+              type="text"
+              value={newCity}
+              onChange={(e) => setNewCity(e.target.value)}
+              placeholder="Enter city name"
+            />
+            <button onClick={handleAddCity}>+</button>
+          </div>
+        ) : (
+          <button style={{ height: '100%' }} onClick={() => setShowInput(true)}>
+            +
+          </button>
+        )}
+      </div>
     </div>
   );
 };
