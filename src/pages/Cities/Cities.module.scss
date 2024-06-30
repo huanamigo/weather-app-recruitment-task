@@ -1,0 +1,39 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  .widget {
+    background-color: rgb(255, 255, 255, 0.2);
+    margin: 0.7rem;
+    padding: 0.5rem;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+
+    div:nth-child(1) {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.8rem;
+    }
+
+    div:nth-child(2) {
+      p:nth-child(1) {
+        font-size: x-large;
+      }
+
+      p:nth-child(2) {
+        font-size: smaller;
+        color: rgb(233, 233, 233);
+      }
+    }
+
+    img {
+      width: 32px;
+      filter: grayscale(100%);
+      background-color: rgb(255, 255, 255, 0.3);
+      border-radius: 50%;
+    }
+  }
+}

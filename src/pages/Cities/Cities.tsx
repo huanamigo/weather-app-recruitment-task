@@ -1,11 +1,9 @@
-import { useOutletContext } from 'react-router-dom';
 import styles from './Cities.module.scss';
 import { useEffect, useState } from 'react';
 import { WeatherType } from '../../types';
 
-interface OutletContextType {
+interface PropsType {
   storedCities: string[];
-  setStoredCities: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 interface CityWidgetType {
@@ -15,8 +13,7 @@ interface CityWidgetType {
   icon: string;
 }
 
-const Cities = () => {
-  const { storedCities }: OutletContextType = useOutletContext();
+const Cities = ({ storedCities }: PropsType) => {
   const [savedData, setSavedData] = useState<CityWidgetType[]>([]);
 
   const fetchWidgetData = async (fetchUrl: string) => {
@@ -62,11 +59,16 @@ const Cities = () => {
     <div className={styles.container}>
       {savedData.map((city) => (
         <div key={city.name} className={styles.widget}>
-          <p>
-            {city.temp} <img src={city.icon} alt="Weather icon" />
-          </p>
-          <p>{city.name}</p>
-          <p>{city.country}</p>
+          <div>
+            <p className={styles.cityTemp}>{city.temp}°</p>
+            <div>
+              <img src={city.icon} alt="Weather icon" />
+            </div>
+          </div>
+          <div>
+            <p>{city.name}</p>
+            <p>{city.country}</p>
+          </div>
         </div>
       ))}
     </div>

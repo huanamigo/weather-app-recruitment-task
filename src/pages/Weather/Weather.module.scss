@@ -1,5 +1,109 @@
 .mainWrapper {
   .header {
     text-align: center;
+    margin: 0.5rem;
+  }
+
+  .currentContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    position: relative;
+
+    height: calc(300px + 2rem);
+
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgb(255, 255, 255, 0.2);
+
+    .textContainer {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .cityName {
+        font-size: 20px;
+      }
+
+      .tempContainer {
+        margin: 2rem 0;
+        .mainTemp {
+          font-size: 48px;
+        }
+        span {
+          color: rgb(216, 216, 216);
+        }
+      }
+
+      .conditionContainer {
+        p {
+          max-width: 150px;
+
+          font-size: 18px;
+        }
+
+        span {
+          color: rgb(216, 216, 216);
+        }
+      }
+    }
+
+    img {
+      position: absolute;
+      width: 300px !important; // Ensure the image is larger than the container
+      background-color: rgba(255, 255, 255, 0.2);
+      right: 0;
+      transform: translate(50%, 0);
+      border-radius: 50%;
+      filter: grayscale(100%);
+    }
+  }
+
+  .hourForecast {
+    margin: 2rem 0 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    text-align: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgb(255, 255, 255, 0.2);
+  }
+
+  .dayForecast {
+    margin: 2rem 0 0 0;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgb(255, 255, 255, 0.2);
+
+    .wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+
+      .icon {
+        display: flex;
+      }
+
+      .minMaxTemp {
+        text-align: end;
+      }
+
+      img {
+        width: 25px;
+        filter: grayscale(100%);
+      }
+    }
+  }
+
+  .dayStats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 2rem 0 0 0;
+    padding: 0 0 2rem 0;
+    border-bottom: 1px solid rgb(255, 255, 255, 0.2);
+    span {
+      color: rgb(216, 216, 216);
+    }
+
+    p {
+      padding-bottom: 1rem;
+    }
   }
 }

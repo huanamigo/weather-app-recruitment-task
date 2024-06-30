@@ -1,16 +1,15 @@
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { WeatherType } from '../../types';
 import styles from './Weather.module.scss';
 import { useEffect, useState } from 'react';
 
-interface OutletContextType {
+interface PropsType {
   fetchData: (fetchUrl: string) => Promise<void>;
   URL: string;
   data: WeatherType | undefined;
 }
 
-const Weather = () => {
-  const { fetchData, URL, data }: OutletContextType = useOutletContext();
+const Weather = ({ fetchData, URL, data }: PropsType) => {
   const [searchParams] = useSearchParams();
   const [showData, setShowData] = useState(false);
 
@@ -20,13 +19,21 @@ const Weather = () => {
   };
 
   useEffect(() => {
-    console.log(searchParams.get('search'));
-    if (!searchParams.get('search')) {
-      setShowData(false);
-    } else {
-      fetchData(URL);
-      setShowData(true);
-    }
+    const fetchDataAndShow = async () => {
+      if (!searchParams.get('search')) {
+        setShowData(false);
+      } else {
+        try {
+          await fetchData(URL);
+          setShowData(true);
+        } catch (error) {
+          console.error(error);
+          setShowData(false);
+        }
+      }
+    };
+
+    fetchDataAndShow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showData]);
 
@@ -42,64 +49,102 @@ const Weather = () => {
             {new Date().toLocaleDateString('en-US', {
               month: 'long',
             })}{' '}
-            {new Date().getDay()}
+            {new Date().getDate()}
           </div>
 
           <div className={styles.currentContainer}>
-            <p>Name {data?.location.name}</p>
-            <p>Temp now{data?.current.temp_c}</p>
-            <p>Temp max {data?.forecast.forecastday[0].day.maxtemp_c}</p>
-            <p>Temp min {data?.forecast.forecastday[0].day.mintemp_c}</p>
-            <p>Condition {data?.current.condition.text}</p>
-            <p>
-              Condition img{' '}
-              <img
-                src={data?.current.condition.icon}
-                alt={data?.current.condition.text}
-              />
-            </p>
-            <p>Feels like {data?.current.feelslike_c}</p>
+            <div className={styles.textContainer}>
+              <p className={styles.cityName}>{data?.location.name}</p>
+
+              <div className={styles.tempContainer}>
+                <p className={styles.mainTemp}>{data?.current.temp_c}°</p>
+                <p>
+                  <span>▵</span>
+                  {data?.forecast.forecastday[0].day.maxtemp_c}° <span>▿</span>
+                  {data?.forecast.forecastday[0].day.mintemp_c}°
+                </p>
+              </div>
+
+              <div className={styles.conditionContainer}>
+                <p>{data?.current.condition.text}</p>
+                <span>Feels like {data?.current.feelslike_c}°</span>
+              </div>
+            </div>
+
+            <img
+              src={data?.current.condition.icon}
+              alt={data?.current.condition.text}
+            />
           </div>
 
           <div className={styles.hourForecast}>
             {data?.forecast.forecastday[0].hour.map((eachHour) =>
-              Number(eachHour.time.slice(10, 13)) >= getCurrentTime() &&
-              Number(eachHour.time.slice(10, 13)) < getCurrentTime() + 5 ? (
-                <p key={eachHour.time_epoch}>
-                  {eachHour.time.slice(10, 13)} {eachHour.temp_c}
-                </p>
+              (Number(eachHour.time.slice(10, 13)) >= getCurrentTime() &&
+                Number(eachHour.time.slice(10, 13)) < getCurrentTime() + 5) ||
+              (getCurrentTime() > 19 &&
+                Number(eachHour.time.slice(10, 13)) >= 19) ? (
+                <div key={eachHour.time_epoch}>
+                  <p>{eachHour.time.slice(10, 20)}</p>
+                  <p>{eachHour.temp_c}°</p>
+                </div>
               ) : null
             )}
           </div>
 
           <div className={styles.dayForecast}>
             {data?.forecast.forecastday.map((day) => (
-              <p key={day.date_epoch}>
-                {new Date(day.date).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                })}
-                <img
-                  src={day.day.condition.icon}
-                  alt={day.day.condition.text}
-                />
-                {day.day.maxtemp_c} {day.day.mintemp_c}{' '}
-                {day.day.daily_chance_of_rain > 0
-                  ? day.day.daily_chance_of_rain
-                  : null}
-              </p>
+              <div key={day.date_epoch} className={styles.wrapper}>
+                <div>
+                  {new Date(day.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                  })}
+                </div>
+                <div className={styles.icon}>
+                  <img
+                    src={day.day.condition.icon}
+                    alt={day.day.condition.text}
+                  />
+
+                  <span>
+                    {' '}
+                    {day.day.daily_chance_of_rain > 0
+                      ? day.day.daily_chance_of_rain
+                      : null}
+                    %
+                  </span>
+                </div>
+                <div className={styles.minMaxTemp}>
+                  ▵{day.day.maxtemp_c} ▿{day.day.mintemp_c}
+                </div>
+              </div>
             ))}
           </div>
 
           <div className={styles.dayStats}>
-            <p>Sunrise {data?.forecast.forecastday[0].astro.sunrise}</p>
-            <p>Sunset {data?.forecast.forecastday[0].astro.sunset}</p>
-            <p>
-              Precipitation{' '}
-              {data?.forecast.forecastday[0].day.daily_chance_of_rain}
-            </p>
-            <p>Humidity {data?.forecast.forecastday[0].day.avghumidity}</p>
-            <p>Max wind {data?.forecast.forecastday[0].day.maxwind_kph}</p>
-            <p>Pressure {data?.forecast.forecastday[0].hour[12].pressure_mb}</p>
+            <div>
+              <span>Sunrise</span>
+              <p>{data?.forecast.forecastday[0].astro.sunrise}</p>
+            </div>
+            <div>
+              <span>Sunset</span>
+              <p>{data?.forecast.forecastday[0].astro.sunset}</p>
+            </div>
+            <div>
+              <span>Precipitation</span>
+              <p>{data?.forecast.forecastday[0].day.daily_chance_of_rain}</p>
+            </div>
+            <div>
+              <span>Humidity</span>
+              <p>{data?.forecast.forecastday[0].day.avghumidity}</p>
+            </div>
+            <div>
+              <span>Max wind</span>
+              <p> {data?.forecast.forecastday[0].day.maxwind_kph}</p>
+            </div>
+            <div>
+              <span>Pressure</span>
+              <p>{data?.forecast.forecastday[0].hour[12].pressure_mb}</p>
+            </div>
           </div>
         </div>
       ) : (
