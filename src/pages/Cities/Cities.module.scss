@@ -7,8 +7,7 @@
     margin: 0.7rem;
     padding: 0.5rem;
     border-radius: 10px;
-    height: 120px;
-
+    min-height: 100px;
     display: flex;
     flex-direction: column;
 
@@ -70,6 +69,10 @@
         background: none;
         border: none;
         max-width: 150px;
+      }
+
+      span {
+        text-align: center;
       }
     }
   }

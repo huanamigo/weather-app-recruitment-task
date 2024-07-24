@@ -66,6 +66,10 @@
     text-align: center;
     padding-bottom: 2rem;
     border-bottom: 1px solid rgb(255, 255, 255, 0.2);
+
+    p:nth-child(1) {
+      color: rgb(210, 210, 210);
+    }
   }
 
   .dayForecast {
@@ -79,10 +83,18 @@
 
       .icon {
         display: flex;
+
+        span {
+          color: rgb(210, 210, 210);
+        }
       }
 
       .minMaxTemp {
         text-align: end;
+
+        span {
+          color: rgb(210, 210, 210);
+        }
       }
 
       img {
@@ -99,7 +111,7 @@
     padding: 0 0 2rem 0;
     border-bottom: 1px solid rgb(255, 255, 255, 0.2);
     span {
-      color: rgb(216, 216, 216);
+      color: rgb(210, 210, 210);
     }
 
     p {

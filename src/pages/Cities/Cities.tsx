@@ -2,10 +2,12 @@ import styles from './Cities.module.scss';
 import { useEffect, useState } from 'react';
 import { WeatherType } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import { fetchData } from '../../actions';
 
 interface PropsType {
   storedCities: string[];
   setStoredCities: (cities: string[]) => void;
+  setBgCode: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface CityWidgetType {
@@ -15,29 +17,26 @@ interface CityWidgetType {
   icon: string;
 }
 
-const Cities = ({ storedCities, setStoredCities }: PropsType) => {
+const Cities = ({ storedCities, setStoredCities, setBgCode }: PropsType) => {
   const [savedData, setSavedData] = useState<CityWidgetType[]>([]);
   const [showInput, setShowInput] = useState(false);
+  const [addingError, setAddingError] = useState('');
   const [newCity, setNewCity] = useState('');
 
   const navigate = useNavigate();
 
   const fetchWidgetData = async (city: string) => {
-    const fetchUrl: string = `https://api.weatherapi.com/v1/forecast.json?key=${
-      import.meta.env.VITE_API_KEY
-    }&q=${city}&days=1&aqi=yes&alerts=no`;
-    const res = await fetch(fetchUrl);
-    if (!res.ok) {
-      const updatedCities = storedCities.filter(
-        (storedCity) => storedCity !== city
-      );
-      setStoredCities(updatedCities);
-      localStorage.setItem('storedCities', JSON.stringify(updatedCities));
+    const data: WeatherType | { error: { message: string } } = await fetchData(
+      city,
+      '1'
+    );
+
+    if ('error' in data) {
+      console.log(data.error.message);
     } else {
-      const jsonData: WeatherType = await res.json();
       setSavedData((prevData) => {
         const isCityAlreadySaved = prevData.some(
-          (city) => city.name === jsonData.location.name
+          (city) => city.name === data.location.name
         );
 
         if (isCityAlreadySaved) {
@@ -47,10 +46,10 @@ const Cities = ({ storedCities, setStoredCities }: PropsType) => {
         return [
           ...prevData,
           {
-            name: jsonData.location.name,
-            country: jsonData.location.country,
-            temp: jsonData.current.temp_c,
-            icon: jsonData.current.condition.icon,
+            name: data.location.name,
+            country: data.location.country,
+            temp: data.current.temp_c,
+            icon: data.current.condition.icon,
           },
         ];
       });
@@ -58,22 +57,39 @@ const Cities = ({ storedCities, setStoredCities }: PropsType) => {
   };
 
   useEffect(() => {
+    setBgCode(0);
     storedCities.forEach((city) => {
       fetchWidgetData(city);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedCities]);
 
-  const handleAddCity = () => {
-    if (
-      newCity.trim() &&
-      !storedCities.includes(newCity.trim().toLowerCase())
-    ) {
-      const updatedCities = [...storedCities, newCity.trim().toLowerCase()];
-      setStoredCities(updatedCities);
-      localStorage.setItem('storedCities', JSON.stringify(updatedCities));
-      setNewCity('');
-      setShowInput(false);
+  const handleAddCity = async () => {
+    if (newCity.length < 3) {
+      setAddingError('Name is too short');
+      return;
+    }
+
+    const dataToAdd = await fetchData(newCity, '1');
+
+    if ('error' in dataToAdd) {
+      setAddingError(dataToAdd.error.message);
+    } else {
+      if (
+        !storedCities.includes(dataToAdd.location.name.trim().toLowerCase())
+      ) {
+        const updatedCities = [
+          ...storedCities,
+          dataToAdd.location.name.trim().toLowerCase(),
+        ];
+        setStoredCities(updatedCities);
+        localStorage.setItem('storedCities', JSON.stringify(updatedCities));
+        setNewCity('');
+        setShowInput(false);
+        setAddingError('');
+      } else {
+        setAddingError('Already saved');
+      }
     }
   };
 
@@ -120,15 +136,24 @@ const Cities = ({ storedCities, setStoredCities }: PropsType) => {
       ))}
       <div className={styles.widget}>
         {showInput ? (
-          <div className={styles.addInput}>
-            <input
-              type="text"
-              value={newCity}
-              onChange={(e) => setNewCity(e.target.value)}
-              placeholder="Enter city name"
-            />
-            <button onClick={handleAddCity}>+</button>
-          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddCity();
+            }}
+          >
+            <div className={styles.addInput}>
+              <input
+                type="text"
+                name="name"
+                value={newCity}
+                onChange={(e) => setNewCity(e.target.value)}
+                placeholder="Enter city name"
+              />
+              <span>{addingError}</span>
+              <button type="submit">+</button>
+            </div>
+          </form>
         ) : (
           <button style={{ height: '100%' }} onClick={() => setShowInput(true)}>
             +

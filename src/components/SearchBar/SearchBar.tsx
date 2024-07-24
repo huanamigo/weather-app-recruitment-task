@@ -1,18 +1,20 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './SearchBar.module.scss';
+import { useEffect, useState } from 'react';
 
-interface SearchProps {
-  fetchData: (fetchUrl: string) => Promise<void>;
-  URL: string;
-}
-
-const SearchBar = ({ fetchData, URL }: SearchProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+const SearchBar = () => {
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    setQuery('');
+  }, [searchParams]);
+
   const handleSearch = () => {
-    navigate(`/weather?search=${searchParams.get('search')}`);
-    fetchData(URL);
+    if (query.length > 3) {
+      navigate(`/weather?search=${query}`);
+    }
   };
 
   const handleGoBack = () => {
@@ -37,15 +39,23 @@ const SearchBar = ({ fetchData, URL }: SearchProps) => {
           />
         </svg>
       </div>
-      <div className={styles.searchContainer}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch();
+        }}
+        className={styles.searchContainer}
+      >
         <input
           type="text"
           placeholder="Search"
-          onChange={(e) => setSearchParams({ search: e.target.value })}
-          value={searchParams.get('search') || ''}
+          minLength={3}
+          onChange={(e) => setQuery(e.target.value)}
+          value={query || ''}
         />
-        <div className={styles.fetchBtnWrapper} onClick={() => handleSearch()}>
-          {searchParams.get('search') ? (
+
+        <button className={styles.fetchBtnWrapper} type="submit">
+          {query ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -76,8 +86,8 @@ const SearchBar = ({ fetchData, URL }: SearchProps) => {
               />
             </svg>
           )}
-        </div>
-      </div>
+        </button>
+      </form>
     </div>
   );
 };

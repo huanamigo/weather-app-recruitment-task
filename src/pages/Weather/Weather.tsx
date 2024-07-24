@@ -1,18 +1,21 @@
 import { useSearchParams } from 'react-router-dom';
-import { WeatherType } from '../../types';
 import styles from './Weather.module.scss';
 import { useEffect, useState } from 'react';
+import { fetchData } from '../../actions';
+import { WeatherType } from '../../types';
 
-interface PropsType {
-  fetchData: (fetchUrl: string) => Promise<void>;
-  URL: string;
-  data: WeatherType | undefined;
-  searchError: string;
+interface WeatherProps {
+  setBgCode: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Weather = ({ fetchData, URL, data, searchError }: PropsType) => {
+const Weather = ({ setBgCode }: WeatherProps) => {
   const [searchParams] = useSearchParams();
   const [showData, setShowData] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const city = searchParams.get('search') || '';
+
+  const [data, setData] = useState<WeatherType>();
 
   const getCurrentTime = () => {
     const d = new Date();
@@ -21,21 +24,21 @@ const Weather = ({ fetchData, URL, data, searchError }: PropsType) => {
 
   useEffect(() => {
     const fetchDataAndShow = async () => {
-      if (!searchParams.get('search') || searchError !== '') {
+      const dataToCheck: WeatherType | { error: { message: string } } =
+        await fetchData(city, '3');
+
+      if ('error' in dataToCheck) {
         setShowData(false);
+        setSearchError(dataToCheck.error.message);
       } else {
-        try {
-          await fetchData(URL);
-          setShowData(true);
-        } catch (error) {
-          setShowData(false);
-        }
+        setData(dataToCheck);
+        setBgCode(dataToCheck.current.condition.code);
+        setShowData(true);
       }
     };
 
     fetchDataAndShow();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showData, searchError]);
+  }, [showData, searchError, setSearchError, city, searchParams, setBgCode]);
 
   return (
     <>
@@ -113,7 +116,7 @@ const Weather = ({ fetchData, URL, data, searchError }: PropsType) => {
                   </span>
                 </div>
                 <div className={styles.minMaxTemp}>
-                  ▵{day.day.maxtemp_c} ▿{day.day.mintemp_c}
+                  ▵{day.day.maxtemp_c} <span>▿{day.day.mintemp_c}</span>
                 </div>
               </div>
             ))}
